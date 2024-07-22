@@ -33,6 +33,9 @@
   QRCodeGenerator
   (qrcode-from [this] (QRCode/from ^VCard this)))
 
+(defn- with-color [^QRCode qc on-color off-color]
+  (.withColor qc on-color off-color))
+
 (defn- with-size [^QRCode qc size]
   (.withSize qc (first size) (second size)))
 
@@ -44,14 +47,16 @@
   `(when ~v
      (~method ~qc ~v)))
 
-(defn make-qrcode [^QRCode qc & {:keys [image-type size charset correction hint]}]
+(defn make-qrcode [^QRCode qc & {:keys [image-type size charset correction hint on-color off-color]}]
   (doto
       qc
     (invoke-when .to image-type)
     (invoke-when with-size size)
     (invoke-when .withCharset charset)
     (invoke-when .withErrorCorrection correction)
-    (invoke-when with-hint hint)))
+    (invoke-when with-hint hint)
+    ((fn [qc] (when (and on-color off-color)
+                (with-color qc on-color off-color))))))
 
 (defn ^QRCode from
   "Create a QR code from the given text or VCard with supplied options.
